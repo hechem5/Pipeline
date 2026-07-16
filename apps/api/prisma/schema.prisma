@@ -1,0 +1,71 @@
+// NOTE: vector dimensions changed from 1536 to 768 to match Gemini text-embedding-004 output.
+// If you switch to OpenAI text-embedding-3-large or another 1536-dim model,
+// update all vector(768) references back to vector(1536).
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+model User {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  passwordHash   String?
+  createdAt      DateTime      @default(now())
+  emailConnected Boolean       @default(false)
+  baseCv         BaseCv?
+  applications   Application[]
+}
+
+model BaseCv {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rawFileUrl     String?
+  structuredData Json
+  // vector(768) matches Gemini text-embedding-004 output dimensions.
+  // Drop-in replacement point: swap with vector(1536) if using OpenAI embeddings.
+  embedding      Unsupported("vector(768)")?
+  updatedAt      DateTime  @updatedAt
+}
+
+model Application {
+  id               String            @id @default(cuid())
+  userId           String
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company          String
+  jobTitle         String
+  jobUrl           String?
+  platform         String?
+  status           ApplicationStatus @default(APPLIED)
+  source           ApplicationSource @default(MANUAL)
+  appliedAt        DateTime          @default(now())
+  lastStatusUpdate DateTime          @updatedAt
+  tailoredCvUrl    String?
+  coverLetterText  String?
+  fitScore         Int?
+  // vector(768) matches Gemini text-embedding-004 output dimensions.
+  // Drop-in replacement point: swap with vector(1536) if using OpenAI embeddings.
+  jobEmbedding     Unsupported("vector(768)")?
+  notes            String?
+}
+
+enum ApplicationStatus {
+  APPLIED
+  INTERVIEW_SCHEDULED
+  OFFER
+  REJECTED
+  GHOSTED
+}
+
+enum ApplicationSource {
+  MANUAL
+  AUTO_DETECTED
+  AI_TAILORED
+}

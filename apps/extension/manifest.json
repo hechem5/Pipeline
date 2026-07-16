@@ -1,0 +1,59 @@
+{
+  "manifest_version": 3,
+  "name": "Pipeline",
+  "version": "1.0.0",
+  "description": "Automatic job application tracker. Detects submissions and logs them to your Pipeline dashboard.",
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_title": "Pipeline",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.linkedin.com/*",
+        "https://linkedin.com/*",
+        "https://*.greenhouse.io/*",
+        "https://jobs.lever.co/*",
+        "https://*.myworkdayjobs.com/*",
+        "https://*.icims.com/*",
+        "https://www.indeed.com/*",
+        "https://indeed.com/*"
+      ],
+      "js": ["content/main.js"],
+      "run_at": "document_idle"
+    },
+    {
+      // Generic catch-all content script using text-based pattern matching.
+      // Matches <all_urls> because the job confirmation page could be on any ATS subdomain
+      // not listed above. The script itself limits false-positives by checking URL patterns.
+      "matches": ["<all_urls>"],
+      "js": ["content/main.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": ["storage", "activeTab", "alarms"],
+  "host_permissions": [
+    "https://www.linkedin.com/*",
+    "https://linkedin.com/*",
+    "https://*.greenhouse.io/*",
+    "https://jobs.lever.co/*",
+    "https://*.myworkdayjobs.com/*",
+    "https://*.icims.com/*",
+    "https://www.indeed.com/*",
+    "https://indeed.com/*"
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
