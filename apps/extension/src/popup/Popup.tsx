@@ -560,8 +560,8 @@ export function Popup() {
           <button
             id="settings-btn"
             style={s.settingsBtn}
-            title="Open dashboard"
-            onClick={() => openDashboard()}
+            title="Open settings"
+            onClick={() => openDashboard('/dashboard/settings')}
           >
             {/* Simple gear SVG icon */}
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
