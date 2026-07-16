@@ -580,27 +580,29 @@ export function Popup() {
           Sign in to Pipeline
         </button>
 
-        {/* API URL config */}
-        <div style={{ ...s.apiSection }}>
-          <label htmlFor="api-url-input" style={s.label}>API URL</label>
-          <div style={{ display: 'flex', gap: 6 }}>
-            <input
-              id="api-url-input"
-              style={{ ...s.input, flex: 1 }}
-              value={apiUrlInput}
-              onChange={(e) => setApiUrlInput(e.target.value)}
-              placeholder="http://localhost:3001"
-            />
-            <button
-              id="save-api-url-btn"
-              style={{ ...s.secondaryBtn, width: 'auto', padding: '8px 12px', fontSize: 12 }}
-              type="button"
-              onClick={saveApiUrl}
-            >
-              Save
-            </button>
+        {/* API URL config (Local Dev Only) */}
+        {import.meta.env.DEV && (
+          <div style={{ ...s.apiSection }}>
+            <label htmlFor="api-url-input" style={s.label}>API URL (Local Dev)</label>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input
+                id="api-url-input"
+                style={{ ...s.input, flex: 1 }}
+                value={apiUrlInput}
+                onChange={(e) => setApiUrlInput(e.target.value)}
+                placeholder="http://localhost:3001"
+              />
+              <button
+                id="save-api-url-btn"
+                style={{ ...s.secondaryBtn, width: 'auto', padding: '8px 12px', fontSize: 12 }}
+                type="button"
+                onClick={saveApiUrl}
+              >
+                Save
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     )
   }

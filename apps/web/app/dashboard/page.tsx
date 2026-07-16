@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
-import { Plus, Search, SlidersHorizontal } from 'lucide-react'
+import { Plus, Search, SlidersHorizontal, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -16,35 +16,38 @@ import {
 import { ApplicationsTable } from '@/components/applications/ApplicationsTable'
 import { AddApplicationDialog } from '@/components/applications/AddApplicationDialog'
 import { getApplications, deleteApplication } from '@/lib/api'
-import { toast } from '@/components/ui/toast'
-import type { Application, ApplicationStatus } from '@/types'
+import { useToast } from '@/hooks/use-toast'
+import type { Application } from '@/types'
+
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
 function StatCard({
   label,
   value,
   color,
-  sub,
+  highlight = false,
 }: {
   label: string
   value: string | number
   color?: string
-  sub?: string
+  highlight?: boolean
 }) {
   return (
-    <div className="bg-bg-surface border border-border-col rounded-lg p-5 flex flex-col gap-1.5">
-      <span className="text-xs font-medium text-text-ter uppercase tracking-wider font-sans">
-        {label}
-      </span>
-      <span
-        className="text-3xl font-mono tabular-nums font-medium leading-none"
-        style={{ color: color ?? '#F1F5F9' }}
-      >
-        {value}
-      </span>
-      {sub && (
-        <span className="text-xs text-text-ter font-sans">{sub}</span>
-      )}
-    </div>
+    <Card className={`rounded-none border-t-0 border-b-0 border-r first:border-l shadow-none ${highlight ? 'bg-secondary border-brand/20' : 'bg-card'}`}>
+      <CardHeader className="pb-2 pt-6 px-6">
+        <CardTitle className="text-sm font-medium text-muted-foreground font-sans">
+          {label}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="px-6 pb-6">
+        <div
+          className={`text-4xl font-mono tracking-tight ${highlight ? 'font-bold' : 'font-medium'}`}
+          style={{ color: color ?? 'var(--foreground)' }}
+        >
+          {value}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -57,6 +60,7 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [editingApp, setEditingApp] = useState<Application | null>(null)
+  const { toast } = useToast()
 
   const { data: applications = [], isLoading } = useQuery({
     queryKey: ['applications', token, statusFilter, search],
@@ -72,10 +76,10 @@ export default function DashboardPage() {
     mutationFn: (id: string) => deleteApplication(token, id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] })
-      toast.success('Application deleted')
+      toast({ title: 'Application deleted', description: 'The application has been removed from your pipeline.' })
     },
     onError: () => {
-      toast.error('Failed to delete application')
+      toast({ title: 'Error', description: 'Failed to delete application', variant: 'destructive' })
     },
   })
 
@@ -92,57 +96,54 @@ export default function DashboardPage() {
       : 0
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Page header */}
-      <div className="flex items-start justify-between">
+    <div className="flex flex-col flex-1 h-full">
+      {/* Header */}
+      <div className="flex items-start justify-between px-8 py-8 border-b border-border bg-background">
         <div>
-          <h1 className="font-display text-3xl font-semibold text-text-pri text-balance">
-            Applications
+          <h1 className="font-display text-3xl font-semibold text-foreground tracking-tight">
+            Pipeline
           </h1>
-          <p className="text-text-sec text-sm mt-1 font-sans">
-            Track every application, interview, and outcome in one place.
+          <p className="text-muted-foreground mt-1 text-sm">
+            Overview of your active applications and outcomes.
           </p>
         </div>
         <Button
           onClick={() => setAddDialogOpen(true)}
           aria-label="Add a new job application"
-          className="gap-2"
         >
-          <Plus className="h-4 w-4" aria-hidden="true" />
+          <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
           Add Application
         </Button>
       </div>
 
-      {/* Stat bar */}
-      <div className="grid grid-cols-4 gap-4">
-        <StatCard label="Applied" value={applied} sub="total sent" />
+      {/* Stats row - Edge to edge styling for Workbench feel */}
+      <div className="grid grid-cols-4 border-b border-border bg-card">
+        <StatCard label="Total Applications" value={total} />
         <StatCard
           label="Interviews"
           value={interviews}
-          color="#38BDF8"
-          sub="scheduled"
+          color="oklch(var(--status-interview))"
         />
         <StatCard
           label="Offers"
           value={offers}
-          color="#4ADE80"
-          sub="received"
+          color="oklch(var(--status-offer))"
+          highlight={true}
         />
         <StatCard
           label="Response Rate"
           value={`${responseRate}%`}
-          color={responseRate >= 20 ? '#4ADE80' : responseRate >= 10 ? '#FCD34D' : '#94A3B8'}
-          sub="interviews + offers / applied"
+          color={responseRate >= 20 ? 'oklch(var(--status-offer))' : responseRate >= 10 ? 'oklch(var(--status-applied))' : 'oklch(var(--status-ghosted))'}
         />
       </div>
 
       {/* Table section */}
-      <div className="space-y-4">
+      <div className="flex flex-col flex-1 bg-background">
         {/* Filters */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex flex-col sm:flex-row items-center gap-4 p-4 md:px-8 border-b border-border bg-card">
+          <div className="relative flex-1 w-full max-w-sm">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-ter pointer-events-none"
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none"
               aria-hidden="true"
             />
             <Input
@@ -150,22 +151,18 @@ export default function DashboardPage() {
               placeholder="Search company or role…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-              aria-label="Search applications by company or role"
+              className="pl-9 bg-background h-10"
+              aria-label="Search applications"
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <SlidersHorizontal
-              className="h-4 w-4 text-text-ter flex-shrink-0"
-              aria-hidden="true"
-            />
+          <div className="flex items-center gap-3 w-full sm:w-auto">
             <Select
               value={statusFilter}
               onValueChange={setStatusFilter}
               aria-label="Filter by status"
             >
-              <SelectTrigger className="w-[160px]" aria-label="Status filter">
+              <SelectTrigger className="w-[180px] bg-background h-10" aria-label="Status filter">
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
               <SelectContent>

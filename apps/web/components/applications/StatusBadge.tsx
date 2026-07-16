@@ -1,5 +1,6 @@
 import { type ApplicationStatus } from '@/types'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
 
 const statusConfig: Record<
   ApplicationStatus,
@@ -7,28 +8,28 @@ const statusConfig: Record<
 > = {
   APPLIED: {
     label: 'Applied',
-    dotColor: 'bg-amber-400',
-    className: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+    dotColor: 'bg-status-applied',
+    className: 'bg-status-applied/10 text-status-applied border-status-applied/20 hover:bg-status-applied/20',
   },
   INTERVIEW_SCHEDULED: {
     label: 'Interview',
-    dotColor: 'bg-sky-400',
-    className: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
+    dotColor: 'bg-status-interview',
+    className: 'bg-status-interview/10 text-status-interview border-status-interview/20 hover:bg-status-interview/20',
   },
   OFFER: {
     label: 'Offer',
-    dotColor: 'bg-brand',
-    className: 'bg-green-500/10 text-brand border-green-500/20',
+    dotColor: 'bg-status-offer',
+    className: 'bg-status-offer/10 text-status-offer border-status-offer/20 hover:bg-status-offer/20',
   },
   REJECTED: {
     label: 'Rejected',
-    dotColor: 'bg-red-400',
-    className: 'bg-red-500/10 text-red-400 border-red-500/20',
+    dotColor: 'bg-status-rejected',
+    className: 'bg-status-rejected/10 text-status-rejected border-status-rejected/20 hover:bg-status-rejected/20',
   },
   GHOSTED: {
     label: 'Ghosted',
-    dotColor: 'bg-gray-500',
-    className: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+    dotColor: 'bg-status-ghosted',
+    className: 'bg-status-ghosted/10 text-status-ghosted border-status-ghosted/20 hover:bg-status-ghosted/20',
   },
 }
 
@@ -40,9 +41,10 @@ interface StatusBadgeProps {
 export function StatusBadge({ status, className }: StatusBadgeProps) {
   const config = statusConfig[status]
   return (
-    <span
+    <Badge
+      variant="outline"
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium font-sans border',
+        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium font-sans border transition-colors',
         config.className,
         className
       )}
@@ -52,17 +54,6 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
         aria-hidden="true"
       />
       {config.label}
-    </span>
+    </Badge>
   )
-}
-
-export function getStatusColor(status: ApplicationStatus): string {
-  const colors: Record<ApplicationStatus, string> = {
-    APPLIED: '#FCD34D',
-    INTERVIEW_SCHEDULED: '#38BDF8',
-    OFFER: '#4ADE80',
-    REJECTED: '#F87171',
-    GHOSTED: '#6B7280',
-  }
-  return colors[status]
 }

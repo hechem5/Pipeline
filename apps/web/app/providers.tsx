@@ -1,9 +1,27 @@
 'use client'
 
-import { SessionProvider } from 'next-auth/react'
+import { SessionProvider, useSession } from 'next-auth/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
+function AuthSync() {
+  const { data: session } = useSession()
+  useEffect(() => {
+    const syncAuth = () => {
+      if (session && (session as any).apiToken) {
+        window.dispatchEvent(new CustomEvent('PIPELINE_AUTH_SYNC', { detail: { token: (session as any).apiToken } }))
+      } else if (session === null) {
+        window.dispatchEvent(new CustomEvent('PIPELINE_AUTH_SYNC', { detail: { token: null } }))
+      }
+    }
+
+    syncAuth()
+    window.addEventListener('PIPELINE_AUTH_REQUEST', syncAuth)
+    return () => window.removeEventListener('PIPELINE_AUTH_REQUEST', syncAuth)
+  }, [session])
+  return null
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -14,6 +32,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <SessionProvider>
+      <AuthSync />
       <QueryClientProvider client={queryClient}>
         {children}
         <Toaster

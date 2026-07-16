@@ -1,51 +1,80 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: 222 16% 7%;
-  --foreground: 210 40% 96%;
-  --card: 224 18% 9%;
-  --card-foreground: 210 40% 96%;
-  --popover: 224 18% 9%;
-  --popover-foreground: 210 40% 96%;
-  --primary: 142 69% 58%;
-  --primary-foreground: 222 16% 7%;
-  --secondary: 224 22% 14%;
-  --secondary-foreground: 210 40% 96%;
-  --muted: 224 22% 14%;
-  --muted-foreground: 215 16% 61%;
-  --accent: 224 22% 14%;
-  --accent-foreground: 210 40% 96%;
-  --destructive: 0 84% 70%;
-  --destructive-foreground: 210 40% 96%;
-  --border: 224 18% 18%;
-  --input: 224 22% 14%;
-  --ring: 142 69% 58%;
-  --radius: 0.5rem;
+@layer base {
+  :root {
+    --background: 0.15 0.01 260;
+    --surface: 0.19 0.012 260;
+    --surface-raised: 0.24 0.014 260;
+    --border: 0.28 0.015 260;
+    --brand: 0.82 0.19 149;
+    --brand-muted: 0.32 0.09 149;
+    --text-primary: 0.96 0.005 260;
+    --text-secondary: 0.72 0.02 260;
+    --text-tertiary: 0.5 0.02 260;
+    
+    --status-interview: 0.75 0.13 230;
+    --status-offer: 0.82 0.19 149;
+    --status-rejected: 0.68 0.19 25;
+    --status-ghosted: 0.55 0.01 260;
+    --status-applied: 0.83 0.15 90;
+
+    /* Shadcn core mapping */
+    --foreground: var(--text-primary);
+    --card: var(--surface);
+    --card-foreground: var(--text-primary);
+    --popover: var(--surface-raised);
+    --popover-foreground: var(--text-primary);
+    --primary: var(--brand);
+    --primary-foreground: 0.15 0.01 260;
+    --secondary: var(--surface-raised);
+    --secondary-foreground: var(--text-primary);
+    --muted: var(--surface);
+    --muted-foreground: var(--text-tertiary);
+    --accent: var(--surface-raised);
+    --accent-foreground: var(--text-primary);
+    --destructive: var(--status-rejected);
+    --destructive-foreground: 0.15 0.01 260;
+    --input: var(--border);
+    --ring: var(--brand);
+    --radius: 0.375rem;
+
+    /* Hallmark required fonts */
+    --font-display: 'Bricolage Grotesque', sans-serif;
+    --font-body: 'IBM Plex Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
 }
 
 @layer base {
   * {
-    border-color: hsl(var(--border));
+    border-color: oklch(var(--border));
     box-sizing: border-box;
   }
+  html, body {
+    overflow-x: clip;
+  }
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    font-family: 'DM Sans', sans-serif;
+    background-color: oklch(var(--background));
+    color: oklch(var(--text-primary));
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  h1, h2, h3 {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 500;
     text-wrap: balance;
+    font-style: normal !important;
   }
+  
   ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: #0C0E12; }
-  ::-webkit-scrollbar-thumb { background: #252A36; border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  ::-webkit-scrollbar-track { background: oklch(var(--background)); }
+  ::-webkit-scrollbar-thumb { background: oklch(var(--border)); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: oklch(var(--text-tertiary)); }
 }
 
 .signal-bar {

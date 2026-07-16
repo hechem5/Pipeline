@@ -16,10 +16,18 @@ const app = express();
 
 app.use(helmet());
 
-const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+const frontendUrlStr = process.env.FRONTEND_URL ?? 'http://localhost:3000,http://localhost:3002';
+const frontendUrls = frontendUrlStr.split(',').map((url) => url.trim());
+
 app.use(
   cors({
-    origin: frontendUrl,
+    origin: function (origin, callback) {
+      if (!origin || frontendUrls.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   })
 );
@@ -76,7 +84,7 @@ const PORT = parseInt(process.env.PORT ?? '3001', 10);
 app.listen(PORT, () => {
   console.log(`[pipeline-api] Server running on http://localhost:${PORT}`);
   console.log(`[pipeline-api] Environment: ${process.env.NODE_ENV ?? 'development'}`);
-  console.log(`[pipeline-api] CORS allowed origin: ${frontendUrl}`);
+  console.log(`[pipeline-api] CORS allowed origins: ${frontendUrlStr}`);
 
   // Start the daily ghosted sweep cron job
   startGhostedSweep();

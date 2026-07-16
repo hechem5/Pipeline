@@ -207,6 +207,16 @@ chrome.runtime.onMessage.addListener(
       return true
     }
 
+    if (type === 'SYNC_AUTH') {
+      const { token } = payload as { token: string | null }
+      if (token) {
+        storageSet({ pipeline_auth: { token } }).then(() => sendResponse({ ok: true }))
+      } else {
+        chrome.storage.local.remove('pipeline_auth').then(() => sendResponse({ ok: true }))
+      }
+      return true
+    }
+
     return false
   },
 )

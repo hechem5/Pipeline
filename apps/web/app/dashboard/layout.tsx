@@ -14,13 +14,13 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-bg-base flex">
+    <div className="min-h-screen bg-background flex">
       <Sidebar />
       <main
         className="flex-1 ml-[240px] min-h-screen overflow-auto"
         id="main-content"
       >
-        <div className="max-w-7xl mx-auto px-8 py-8">
+        <div className="w-full h-full flex flex-col">
           {children}
         </div>
       </main>

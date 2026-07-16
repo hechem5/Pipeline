@@ -41,14 +41,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full flex flex-col gap-6">
-      <div className="flex flex-col gap-2 text-center lg:text-left">
-        <h2 className="text-3xl font-display font-bold text-text-pri">Welcome back</h2>
-        <p className="text-text-sec">Enter your details to sign in to your account</p>
+    <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-2">
+        <h2 className="text-2xl font-display font-medium text-foreground">Sign in</h2>
+        <p className="text-muted-foreground">Access your application pipeline.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <div className="flex flex-col gap-3">
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
@@ -58,11 +58,11 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
-            className="bg-base"
+            className="bg-background h-12"
           />
         </div>
         
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
           </div>
@@ -74,24 +74,24 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete="current-password"
-            className="bg-base"
+            className="bg-background h-12"
           />
         </div>
 
         {error && (
-          <div className="text-red-400 text-sm font-medium p-3 bg-red-500/10 rounded-md border border-red-500/20">
+          <div className="text-destructive text-sm font-medium p-4 bg-destructive/10 border border-destructive/20 rounded-md">
             {error}
           </div>
         )}
 
-        <Button type="submit" className="w-full mt-2" disabled={isLoading || !email || !password}>
+        <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isLoading || !email || !password}>
           {isLoading ? 'Signing in...' : 'Sign in'}
         </Button>
       </form>
 
-      <div className="text-center text-sm text-text-sec mt-2">
+      <div className="text-sm text-muted-foreground">
         Don't have an account?{' '}
-        <Link href="/register" className="text-brand hover:underline font-medium hover:text-brand-muted transition-colors">
+        <Link href="/register" className="text-foreground font-medium hover:text-brand transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm">
           Create one
         </Link>
       </div>

@@ -5,12 +5,7 @@
   "description": "Automatic job application tracker. Detects submissions and logs them to your Pipeline dashboard.",
   "action": {
     "default_popup": "src/popup/index.html",
-    "default_title": "Pipeline",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    }
+    "default_title": "Pipeline"
   },
   "background": {
     "service_worker": "background.js",
@@ -26,9 +21,11 @@
         "https://*.myworkdayjobs.com/*",
         "https://*.icims.com/*",
         "https://www.indeed.com/*",
-        "https://indeed.com/*"
+        "https://indeed.com/*",
+        "http://localhost:3000/*",
+        "http://localhost:3002/*"
       ],
-      "js": ["content/main.js"],
+      "js": ["content.js"],
       "run_at": "document_idle"
     },
     {
@@ -36,7 +33,7 @@
       // Matches <all_urls> because the job confirmation page could be on any ATS subdomain
       // not listed above. The script itself limits false-positives by checking URL patterns.
       "matches": ["<all_urls>"],
-      "js": ["content/main.js"],
+      "js": ["content.js"],
       "run_at": "document_idle"
     }
   ],
@@ -49,11 +46,8 @@
     "https://*.myworkdayjobs.com/*",
     "https://*.icims.com/*",
     "https://www.indeed.com/*",
-    "https://indeed.com/*"
-  ],
-  "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  }
+    "https://indeed.com/*",
+    "http://localhost:3000/*",
+    "http://localhost:3002/*"
+  ]
 }

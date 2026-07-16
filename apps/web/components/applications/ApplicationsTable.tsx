@@ -39,22 +39,22 @@ export function ApplicationsTable({ applications, isLoading, onDelete, onEdit, o
 
   if (isLoading) {
     return (
-      <div className="rounded-md border border-border">
+      <div className="rounded-md border border-border bg-background">
         <Table>
           <TableHeader>
             <TableRow className="border-border">
               <TableHead className="w-[3px] p-0"></TableHead>
-              <TableHead className="text-text-ter text-xs uppercase tracking-wider">Company & Role</TableHead>
-              <TableHead className="text-text-ter text-xs uppercase tracking-wider">Status</TableHead>
-              <TableHead className="text-text-ter text-xs uppercase tracking-wider">Applied</TableHead>
-              <TableHead className="text-text-ter text-xs uppercase tracking-wider">Source</TableHead>
-              <TableHead className="text-text-ter text-xs uppercase tracking-wider w-[50px]"></TableHead>
+              <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">Company & Role</TableHead>
+              <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">Status</TableHead>
+              <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">Applied</TableHead>
+              <TableHead className="text-muted-foreground text-xs uppercase tracking-wider">Source</TableHead>
+              <TableHead className="text-muted-foreground text-xs uppercase tracking-wider w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {Array.from({ length: 5 }).map((_, i) => (
               <TableRow key={i} className="border-border">
-                <TableCell className="p-0"><div className="w-[3px] h-12 bg-raised" /></TableCell>
+                <TableCell className="p-0"><div className="w-[3px] h-12 bg-muted" /></TableCell>
                 <TableCell>
                   <Skeleton className="h-4 w-[150px] mb-2" />
                   <Skeleton className="h-3 w-[100px]" />
@@ -73,10 +73,10 @@ export function ApplicationsTable({ applications, isLoading, onDelete, onEdit, o
 
   if (applications.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 border border-border border-dashed rounded-lg bg-surface">
-        <FileText className="w-12 h-12 text-text-ter mb-4" />
-        <h3 className="text-lg font-medium text-text-pri mb-2 font-display">No applications yet</h3>
-        <p className="text-text-sec text-center mb-6 max-w-sm">
+      <div className="flex flex-col items-center justify-center p-12 border border-border rounded-md bg-background">
+        <FileText className="w-12 h-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-medium text-foreground mb-2 font-display">No applications yet</h3>
+        <p className="text-muted-foreground text-center mb-6 max-w-sm">
           Start by installing the Chrome extension to automatically detect your applications, or add one manually.
         </p>
         <Button onClick={onAddApplication}>Add Application</Button>
@@ -85,36 +85,36 @@ export function ApplicationsTable({ applications, isLoading, onDelete, onEdit, o
   }
 
   return (
-    <div className="rounded-md border border-border overflow-hidden">
+    <div className="rounded-md border border-border overflow-hidden bg-background">
       <Table>
-        <TableHeader className="bg-surface/50">
+        <TableHeader className="bg-muted/30">
           <TableRow className="border-border hover:bg-transparent">
-            <TableHead className="w-[3px] p-0"></TableHead>
-            <TableHead className="text-text-ter text-xs uppercase tracking-wider font-medium">Company & Role</TableHead>
-            <TableHead className="text-text-ter text-xs uppercase tracking-wider font-medium">Status</TableHead>
-            <TableHead className="text-text-ter text-xs uppercase tracking-wider font-medium">Applied</TableHead>
-            <TableHead className="text-text-ter text-xs uppercase tracking-wider font-medium">Source</TableHead>
-            <TableHead className="text-right text-text-ter text-xs uppercase tracking-wider font-medium">Actions</TableHead>
+            <TableHead className="w-[4px] p-0"></TableHead>
+            <TableHead className="text-muted-foreground text-xs uppercase tracking-wider font-medium">Company & Role</TableHead>
+            <TableHead className="text-muted-foreground text-xs uppercase tracking-wider font-medium">Status</TableHead>
+            <TableHead className="text-muted-foreground text-xs uppercase tracking-wider font-medium">Applied</TableHead>
+            <TableHead className="text-muted-foreground text-xs uppercase tracking-wider font-medium">Source</TableHead>
+            <TableHead className="text-right text-muted-foreground text-xs uppercase tracking-wider font-medium">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {applications.map((app) => {
             const isRecent = new Date().getTime() - new Date(app.lastStatusUpdate).getTime() < 24 * 60 * 60 * 1000;
             
-            // Map status to color
-            let colorClass = 'bg-gray-500';
-            if (app.status === 'APPLIED') colorClass = 'bg-amber-500';
-            if (app.status === 'INTERVIEW_SCHEDULED') colorClass = 'bg-sky-500';
-            if (app.status === 'OFFER') colorClass = 'bg-brand';
-            if (app.status === 'REJECTED') colorClass = 'bg-red-500';
+            // Map status to new OKLCH colors
+            let colorClass = 'bg-status-ghosted';
+            if (app.status === 'APPLIED') colorClass = 'bg-status-applied';
+            if (app.status === 'INTERVIEW_SCHEDULED') colorClass = 'bg-status-interview';
+            if (app.status === 'OFFER') colorClass = 'bg-status-offer';
+            if (app.status === 'REJECTED') colorClass = 'bg-status-rejected';
 
             return (
               <TableRow 
                 key={app.id}
                 className={cn(
-                  "border-border group hover:bg-raised/50 transition-colors cursor-pointer",
+                  "border-border group hover:bg-muted/50 transition-colors cursor-pointer",
                   // If it's AI tailored and hasn't been approved yet, give it a slight background tint
-                  app.status === 'APPLIED' && app.source === 'AI_TAILORED' ? "bg-brand/5" : ""
+                  app.status === 'APPLIED' && app.source === 'AI_TAILORED' ? "bg-brand/5 hover:bg-brand/10" : ""
                 )}
                 onClick={() => {
                    if (app.source === 'AI_TAILORED' && app.status === 'APPLIED') {
@@ -125,15 +125,15 @@ export function ApplicationsTable({ applications, isLoading, onDelete, onEdit, o
                 <TableCell className="p-0">
                   <div 
                     className={cn(
-                      "w-[3px] h-full min-h-[4rem] transition-colors",
+                      "w-[4px] h-full min-h-[4.5rem] transition-colors signal-bar",
                       colorClass,
                       isRecent && "animate-pulse-signal"
                     )}
                   />
                 </TableCell>
                 <TableCell>
-                  <div className="font-semibold text-text-pri">{app.company}</div>
-                  <div className="text-sm text-text-sec flex items-center gap-2 mt-0.5">
+                  <div className="font-medium text-foreground">{app.company}</div>
+                  <div className="text-sm text-muted-foreground flex items-center gap-2 mt-0.5">
                     <span className="truncate max-w-[200px]">{app.jobTitle}</span>
                     {app.platform && (
                       <>
@@ -147,25 +147,25 @@ export function ApplicationsTable({ applications, isLoading, onDelete, onEdit, o
                   <StatusBadge status={app.status} />
                 </TableCell>
                 <TableCell>
-                  <div className="font-mono tabular-nums text-text-sec">
+                  <div className="font-mono text-sm tabular-nums text-muted-foreground">
                     {format(new Date(app.appliedAt), 'MMM dd, yyyy')}
                   </div>
                 </TableCell>
                 <TableCell>
                   {app.source === 'AUTO_DETECTED' && (
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-400">Auto</span>
+                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border">Auto</span>
                   )}
                   {app.source === 'MANUAL' && (
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-surface text-text-ter border border-border">Manual</span>
+                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border">Manual</span>
                   )}
                   {app.source === 'AI_TAILORED' && (
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-brand-muted text-brand border border-brand/20">AI Tailored</span>
+                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-brand/10 text-brand border border-brand/20">AI Tailored</span>
                   )}
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right pr-4">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100">
                         <span className="sr-only">Open menu</span>
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
@@ -181,7 +181,7 @@ export function ApplicationsTable({ applications, isLoading, onDelete, onEdit, o
                       <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(app); }}>
                         <Edit2 className="mr-2 h-4 w-4" /> Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(app.id); }} className="text-red-400 focus:text-red-400">
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(app.id); }} className="text-destructive focus:text-destructive">
                         <Trash2 className="mr-2 h-4 w-4" /> Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
