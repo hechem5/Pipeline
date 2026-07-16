@@ -1,5 +1,31 @@
-import pdfParse from 'pdf-parse';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js';
 import { callWithFallback } from './llm';
+
+// Disable workers since we're running in Node
+pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+
+async function extractTextFromPDF(pdfBuffer: Buffer): Promise<string> {
+  const data = new Uint8Array(pdfBuffer);
+  const loadingTask = pdfjsLib.getDocument({
+    data,
+    useSystemFonts: true,
+    disableFontFace: true,
+  });
+  
+  const pdfDocument = await loadingTask.promise;
+  let fullText = '';
+  
+  for (let i = 1; i <= pdfDocument.numPages; i++) {
+    const page = await pdfDocument.getPage(i);
+    const textContent = await page.getTextContent();
+    const pageText = textContent.items
+      .map((item) => ('str' in item ? item.str : ''))
+      .join(' ');
+    fullText += pageText + '\n';
+  }
+  
+  return fullText;
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -112,8 +138,7 @@ export async function parse(pdfBuffer: Buffer): Promise<StructuredCv> {
   // Step 1: Extract raw text from PDF
   let rawText: string;
   try {
-    const data = await pdfParse(pdfBuffer);
-    rawText = data.text;
+    rawText = await extractTextFromPDF(pdfBuffer);
   } catch (err) {
     throw new Error(
       `[cv-parser] Failed to extract text from PDF: ${err instanceof Error ? err.message : String(err)}`
