@@ -12,7 +12,6 @@ export default defineConfig({
         popup: resolve(__dirname, 'src/popup/index.html'),
         background: resolve(__dirname, 'src/background.ts'),
         content: resolve(__dirname, 'src/content/main.ts'),
-        'job-posting': resolve(__dirname, 'src/content/job-posting-detector.ts'),
         'auth-bridge': resolve(__dirname, 'src/auth-bridge.ts'),
       },
       output: {
@@ -22,7 +21,6 @@ export default defineConfig({
           if (
             chunk.name === 'background' ||
             chunk.name === 'content' ||
-            chunk.name === 'job-posting' ||
             chunk.name === 'auth-bridge'
           ) {
             return '[name].js'
