@@ -102,6 +102,11 @@ router.post(
         return;
       }
 
+      if (msg.includes('Failed to extract text') || msg.includes('appears to be empty')) {
+        res.status(400).json({ error: 'Could not read text from this PDF. Please ensure it is a valid, text-based PDF.' });
+        return;
+      }
+
       res.status(500).json({ error: msg });
     }
   }
