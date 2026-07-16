@@ -71,7 +71,7 @@ export async function callGemini(
   systemPrompt: string
 ): Promise<string> {
   const client = getGeminiClient();
-  const model = client.getGenerativeModel({ model: 'gemini-3.5-flash' });
+  const model = client.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
   const result = await model.generateContent({
     contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${prompt}` }] }],

@@ -35,9 +35,6 @@
       "run_at": "document_idle"
     },
     {
-      // Generic catch-all content script using text-based pattern matching.
-      // Matches <all_urls> because the job confirmation page could be on any ATS subdomain
-      // not listed above. The script itself limits false-positives by checking URL patterns.
       "matches": ["<all_urls>"],
       "js": ["content.js"],
       "run_at": "document_idle"
