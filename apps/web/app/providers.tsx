@@ -10,15 +10,16 @@ function AuthSync() {
   useEffect(() => {
     const syncAuth = () => {
       if (session && (session as any).apiToken) {
-        window.dispatchEvent(new CustomEvent('PIPELINE_AUTH_SYNC', { detail: { token: (session as any).apiToken } }))
+        window.postMessage({ type: 'PIPELINE_AUTH_SYNC', token: (session as any).apiToken }, '*')
       } else if (session === null) {
-        window.dispatchEvent(new CustomEvent('PIPELINE_AUTH_SYNC', { detail: { token: null } }))
+        window.postMessage({ type: 'PIPELINE_AUTH_SYNC', token: null }, '*')
       }
     }
 
     syncAuth()
-    window.addEventListener('PIPELINE_AUTH_REQUEST', syncAuth)
-    return () => window.removeEventListener('PIPELINE_AUTH_REQUEST', syncAuth)
+    window.addEventListener('message', (e) => {
+      if (e.data?.type === 'PIPELINE_AUTH_REQUEST') syncAuth()
+    })
   }, [session])
   return null
 }

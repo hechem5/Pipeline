@@ -109,17 +109,17 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 })
 
 // Listen for auth sync events from the web app
-window.addEventListener('PIPELINE_AUTH_SYNC', (e: Event) => {
-  const detail = (e as CustomEvent).detail
-  if (detail && typeof detail.token !== 'undefined') {
-    chrome.runtime.sendMessage({ type: 'SYNC_AUTH', payload: { token: detail.token } }, () => {
+window.addEventListener('message', (e) => {
+  if (e.source !== window || !e.data) return
+  if (e.data.type === 'PIPELINE_AUTH_SYNC' && typeof e.data.token !== 'undefined') {
+    chrome.runtime.sendMessage({ type: 'SYNC_AUTH', payload: { token: e.data.token } }, () => {
       void chrome.runtime.lastError
     })
   }
 })
 
 // Request auth state in case we loaded after the page rendered
-window.dispatchEvent(new CustomEvent('PIPELINE_AUTH_REQUEST'))
+window.postMessage({ type: 'PIPELINE_AUTH_REQUEST' }, '*')
 
 // ---------------------------------------------------------------------------
 // Debounce helper for MutationObserver
