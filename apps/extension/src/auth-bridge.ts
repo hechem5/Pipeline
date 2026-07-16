@@ -9,7 +9,7 @@ window.addEventListener('message', (e) => {
   if (e.source !== window || !e.data) return
 
   // Listen for login/logout broadcasts from the web app
-  if (e.data.type === 'PIPELINE_AUTH_SYNC' && typeof e.data.token !== 'undefined') {
+  if (e.data.type === 'PIPELINE_AUTH_SUCCESS' && typeof e.data.token !== 'undefined') {
     chrome.runtime.sendMessage({ type: 'SYNC_AUTH', payload: { token: e.data.token } }, () => {
       // Ignore errors if background is asleep
       void chrome.runtime.lastError

@@ -10,9 +10,9 @@ function AuthSync() {
   useEffect(() => {
     const syncAuth = () => {
       if (session && (session as any).apiToken) {
-        window.postMessage({ type: 'PIPELINE_AUTH_SYNC', token: (session as any).apiToken }, window.location.origin)
+        window.postMessage({ type: 'PIPELINE_AUTH_SUCCESS', token: (session as any).apiToken }, window.location.origin)
       } else if (session === null) {
-        window.postMessage({ type: 'PIPELINE_AUTH_SYNC', token: null }, window.location.origin)
+        window.postMessage({ type: 'PIPELINE_AUTH_SUCCESS', token: null }, window.location.origin)
       }
     }
 

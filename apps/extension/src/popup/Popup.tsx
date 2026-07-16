@@ -473,9 +473,25 @@ export function Popup() {
 
   // Load auth + stored data from chrome.storage
   useEffect(() => {
-    ;(async () => {
-      const result = await storageGet<unknown>(['pipeline_auth', 'pipeline_api_url', 'pending_reviews'])
-      const storedAuth = result['pipeline_auth'] as StoredAuth | undefined
+    async function checkAuth() {
+      const result = await chrome.storage.local.get(['pipeline_auth', 'pipeline_api_url', 'pending_reviews'])
+      let storedAuth = result['pipeline_auth'] as StoredAuth | undefined
+      
+      if (!storedAuth?.token) {
+        try {
+          const res = await fetch('http://localhost:3000/api/auth/session', { credentials: 'include' })
+          if (res.ok) {
+            const data = await res.json()
+            if (data && data.apiToken) {
+              storedAuth = { token: data.apiToken }
+              await chrome.storage.local.set({ pipeline_auth: storedAuth })
+            }
+          }
+        } catch (e) {
+          console.warn('[Pipeline] Could not actively fetch session from web app:', e)
+        }
+      }
+
       const storedApiUrl = result['pipeline_api_url'] as string | undefined
       const storedReviews = result['pending_reviews'] as PendingReview[] | undefined
 
@@ -486,7 +502,8 @@ export function Popup() {
       if (storedReviews?.length) setPendingReviews(storedReviews)
       if (storedAuth) setAuth(storedAuth)
       setAuthLoading(false)
-    })()
+    }
+    checkAuth()
   }, [])
 
   // Fetch recent applications from the API when logged in
