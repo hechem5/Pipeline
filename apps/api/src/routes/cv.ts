@@ -107,6 +107,11 @@ router.post(
         return;
       }
 
+      if (msg.includes('LLM_KEY_MISSING') || msg.includes('GoogleGenerativeAI Error') || msg.includes('API_KEY_INVALID')) {
+        res.status(503).json({ error: 'AI processing failed due to missing or invalid API keys. Please check your GEMINI_API_KEY or GROQ_API_KEY.' });
+        return;
+      }
+
       res.status(500).json({ error: msg });
     }
   }
