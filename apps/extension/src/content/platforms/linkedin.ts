@@ -24,7 +24,9 @@ export function detectLinkedIn(): DetectedApplication | null {
   const { hostname, pathname, search } = window.location
   if (!hostname.includes('linkedin.com')) return null
 
-  const bodyText = document.body?.innerText?.toLowerCase() || ''
+  // Use textContent instead of innerText, and collapse all whitespace into single spaces.
+  // This prevents CSS layout or newlines from breaking our phrase matching!
+  const bodyText = document.body?.textContent?.replace(/\s+/g, ' ').toLowerCase() || ''
 
   // --- Signal 1: Confirmation phrase anywhere on the page ---
   if (
@@ -48,7 +50,7 @@ export function detectLinkedIn(): DetectedApplication | null {
 }
 
 function buildResult(): DetectedApplication {
-  const bodyText = document.body?.innerText || ''
+  const bodyText = document.body?.textContent?.replace(/\s+/g, ' ') || ''
   
   // Try to extract company from the new modal text: "Your application was sent to [Company]!"
   let modalCompany = ''
