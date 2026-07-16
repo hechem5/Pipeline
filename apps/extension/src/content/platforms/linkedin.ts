@@ -24,23 +24,23 @@ export function detectLinkedIn(): DetectedApplication | null {
   const { hostname, pathname, search } = window.location
   if (!hostname.includes('linkedin.com')) return null
 
-  // --- Signal 1: artdeco confirmation modal ---
-  const modal = document.querySelector<HTMLElement>('.artdeco-modal')
-  if (modal && containsConfirmationPhrase(modal.innerText)) {
-    return buildResult()
-  }
+  const bodyText = document.body?.innerText?.toLowerCase() || ''
 
-  // --- Signal 2: Easy Apply sent modal ---
-  const easyApplyModal = document.querySelector<HTMLElement>('.jobs-easy-apply-modal')
+  // --- Signal 1: Confirmation phrase anywhere on the page ---
   if (
-    easyApplyModal &&
-    easyApplyModal.innerText.toLowerCase().includes('your application was sent')
+    containsConfirmationPhrase(bodyText) ||
+    bodyText.includes('your application was sent')
   ) {
     return buildResult()
   }
 
-  // --- Signal 3: URL pattern ---
-  if (pathname.includes('/applied') || search.includes('applied=true')) {
+  // --- Signal 2: URL pattern ---
+  if (
+    pathname.includes('/applied') || 
+    search.includes('applied=true') || 
+    pathname.includes('post-apply') ||
+    pathname.includes('post-apply-next-action')
+  ) {
     return buildResult()
   }
 
@@ -48,21 +48,30 @@ export function detectLinkedIn(): DetectedApplication | null {
 }
 
 function buildResult(): DetectedApplication {
-  // Company: prefer dedicated element, fall back to page title parsing
+  const bodyText = document.body?.innerText || ''
+  
+  // Try to extract company from the new modal text: "Your application was sent to [Company]!"
+  let modalCompany = ''
+  const modalMatch = bodyText.match(/your application was sent to (.*?)[!\n]/i)
+  if (modalMatch && modalMatch[1]) {
+    modalCompany = modalMatch[1].trim()
+  }
+
+  // Company: prefer modal match, then dedicated element, fall back to page title parsing
   const companyEl = document.querySelector(
     '.job-details-jobs-unified-top-card__company-name a, .job-details-jobs-unified-top-card__company-name',
   )
-  const company = companyEl?.textContent?.trim() ?? extractCompanyFromTitle(document.title)
+  const company = modalCompany || companyEl?.textContent?.trim() || extractCompanyFromTitle(document.title) || 'Unknown Company'
 
   // Title: prefer dedicated element, fall back to generic helper
   const titleEl = document.querySelector(
-    '.job-details-jobs-unified-top-card__job-title h1, .job-details-jobs-unified-top-card__job-title',
+    '.job-details-jobs-unified-top-card__job-title h1, .job-details-jobs-unified-top-card__job-title, .jobs-details-top-card__job-title',
   )
   const jobTitle =
-    titleEl?.textContent?.trim() ?? extractJobTitleFromDOM() ?? 'Unknown Position'
+    titleEl?.textContent?.trim() || extractJobTitleFromDOM() || document.title.split('|')[0].trim() || 'Unknown Position'
 
   return {
-    company: company || 'Unknown Company',
+    company,
     jobTitle,
     jobUrl: window.location.href,
     platform: 'linkedin',
