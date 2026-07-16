@@ -13,6 +13,7 @@ export default defineConfig({
         background: resolve(__dirname, 'src/background.ts'),
         content: resolve(__dirname, 'src/content/main.ts'),
         'job-posting': resolve(__dirname, 'src/content/job-posting-detector.ts'),
+        'auth-bridge': resolve(__dirname, 'src/auth-bridge.ts'),
       },
       output: {
         // Background and content scripts must be flat files (not chunked) for MV3 compliance.
@@ -21,7 +22,8 @@ export default defineConfig({
           if (
             chunk.name === 'background' ||
             chunk.name === 'content' ||
-            chunk.name === 'job-posting'
+            chunk.name === 'job-posting' ||
+            chunk.name === 'auth-bridge'
           ) {
             return '[name].js'
           }

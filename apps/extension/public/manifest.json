@@ -14,6 +14,14 @@
   "content_scripts": [
     {
       "matches": [
+        "http://localhost:3000/*",
+        "http://localhost:3002/*"
+      ],
+      "js": ["auth-bridge.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
         "https://www.linkedin.com/*",
         "https://linkedin.com/*",
         "https://*.greenhouse.io/*",
@@ -21,9 +29,7 @@
         "https://*.myworkdayjobs.com/*",
         "https://*.icims.com/*",
         "https://www.indeed.com/*",
-        "https://indeed.com/*",
-        "http://localhost:3000/*",
-        "http://localhost:3002/*"
+        "https://indeed.com/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
