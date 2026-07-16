@@ -20,6 +20,7 @@ export const CONFIRMATION_PHRASES = [
   'successfully submitted your application',
   'your application is on its way',
   'application sent',
+  'your application was sent',
 ]
 
 /**
