@@ -9,8 +9,10 @@ import { uploadCv } from '@/lib/api';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 
+import { BaseCv } from '@/types';
+
 interface CVUploaderProps {
-  onSuccess: (cv: StructuredCv) => void;
+  onSuccess: (cv: BaseCv) => void;
 }
 
 export function CVUploader({ onSuccess }: CVUploaderProps) {
@@ -64,9 +66,9 @@ export function CVUploader({ onSuccess }: CVUploaderProps) {
     setIsUploading(true);
     
     try {
-      const structuredData = await uploadCv(token, uploadFile);
+      const response = await uploadCv(token, uploadFile);
       toast.success('CV uploaded and parsed successfully');
-      onSuccess(structuredData);
+      onSuccess(response.baseCv);
     } catch (err: any) {
       toast.error('Failed to process CV', { description: err.message });
       setFile(null);

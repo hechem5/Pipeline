@@ -86,10 +86,10 @@ export async function getCv(token: string): Promise<BaseCv> {
   return apiFetch<BaseCv>('/cv', {}, token)
 }
 
-export async function uploadCv(token: string, file: File): Promise<StructuredCv> {
+export async function uploadCv(token: string, file: File): Promise<{ baseCv: BaseCv; structuredData: StructuredCv }> {
   const form = new FormData()
   form.append('file', file)
-  return apiFetch<StructuredCv>('/cv', { method: 'POST', body: form, headers: {} }, token)
+  return apiFetch<{ baseCv: BaseCv; structuredData: StructuredCv }>('/cv', { method: 'POST', body: form, headers: {} }, token)
 }
 
 export async function matchJob(token: string, data: { jobUrl: string; jobDescription?: string }): Promise<JobMatchResult> {

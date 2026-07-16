@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { getCv } from '@/lib/api';
 import { CVUploader } from '@/components/cv/CVUploader';
@@ -13,19 +13,20 @@ import { Button } from '@/components/ui/button';
 export default function CvPage() {
   const { data: session } = useSession();
   const token = (session as any)?.apiToken;
+  const queryClient = useQueryClient();
 
   const [isReplacing, setIsReplacing] = useState(false);
 
-  const { data: cv, isLoading, refetch } = useQuery<BaseCv>({
+  const { data: cv, isLoading } = useQuery<BaseCv>({
     queryKey: ['baseCv'],
     queryFn: () => getCv(token),
     enabled: !!token,
     retry: false, // Don't retry on 404
   });
 
-  const handleSuccess = () => {
+  const handleSuccess = (newCv: BaseCv) => {
+    queryClient.setQueryData(['baseCv'], newCv);
     setIsReplacing(false);
-    refetch();
   };
 
   return (
