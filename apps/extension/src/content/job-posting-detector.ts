@@ -168,6 +168,8 @@ export function runJobPostingDetector(): void {
   chrome.runtime.sendMessage({
     type: 'JOB_POSTING_DETECTED',
     payload: posting,
+  }).catch(() => {
+    // Silently ignore errors (e.g. Extension context invalidated)
   })
 }
 
