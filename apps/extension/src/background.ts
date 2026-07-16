@@ -173,6 +173,25 @@ async function retryOfflineQueue(): Promise<void> {
   await storageSet({ pipeline_retry_queue: failed })
 }
 
+async function retryPendingOfflineQueue(): Promise<void> {
+  const auth = await getAuth()
+  if (!auth) return
+
+  const result = await storageGet<DetectedApplication[]>('pipeline_pending_offline')
+  const queue = (result['pipeline_pending_offline'] as DetectedApplication[]) ?? []
+  if (queue.length === 0) return
+
+  console.log('[Pipeline] Retrying', queue.length, 'unauthenticated queued detections...')
+  
+  // Clear it immediately, handleApplicationDetected will re-queue to retry_queue if API is down
+  await storageSet({ pipeline_pending_offline: [] })
+  setBadge('', '#000000') // clear the red '!' badge
+
+  for (const item of queue) {
+    await handleApplicationDetected(item, 'AUTO_DETECTED')
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Message listener
 // ---------------------------------------------------------------------------
@@ -210,7 +229,12 @@ chrome.runtime.onMessage.addListener(
     if (type === 'SYNC_AUTH') {
       const { token } = payload as { token: string | null }
       if (token) {
-        storageSet({ pipeline_auth: { token } }).then(() => sendResponse({ ok: true }))
+        storageSet({ pipeline_auth: { token } }).then(async () => {
+          // Now that we have auth, retry both queues
+          await retryPendingOfflineQueue()
+          await retryOfflineQueue()
+          sendResponse({ ok: true })
+        })
       } else {
         chrome.storage.local.remove('pipeline_auth').then(() => sendResponse({ ok: true }))
       }
