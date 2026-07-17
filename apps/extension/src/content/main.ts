@@ -155,6 +155,40 @@ history.replaceState = function (...args) {
 }
 
 // ---------------------------------------------------------------------------
+// LinkedIn-specific polling fallback
+// ---------------------------------------------------------------------------
+// LinkedIn's Easy Apply modal confirmation renders asynchronously.
+// The MutationObserver triggers correctly, but the 750ms debounce means
+// we might miss the exact window when the text is in the DOM.
+// Poll aggressively for 60 seconds after page load as a safety net.
+// ---------------------------------------------------------------------------
+if (window.location.hostname.includes('linkedin.com')) {
+  let pollCount = 0
+  const maxPolls = 120 // 60 seconds at 500ms intervals
+  const pollInterval = setInterval(() => {
+    pollCount++
+    if (pollCount >= maxPolls) {
+      clearInterval(pollInterval)
+      return
+    }
+    // Only poll if we haven't already detected on this URL
+    const url = window.location.href
+    if (hasDetectedUrl(url)) {
+      clearInterval(pollInterval)
+      return
+    }
+    // Quick check before running full detection
+    const bodyText = document.body?.textContent?.toLowerCase() || ''
+    if (bodyText.includes('your application was sent') ||
+        bodyText.includes('application was sent') ||
+        bodyText.includes('application submitted')) {
+      console.log('[Pipeline] Poll detected confirmation phrase, running detection...')
+      runDetection()
+    }
+  }, 500)
+}
+
+// ---------------------------------------------------------------------------
 // Initial run
 // ---------------------------------------------------------------------------
 
