@@ -8,11 +8,12 @@
 //   3. Run the job posting detector
 //   4. Send detected data to the background service worker
 //   5. Watch for SPA navigation via MutationObserver + popstate
+//   6. On LinkedIn: also run a zero-debounce modal observer
 // ---------------------------------------------------------------------------
 
-import type { MessageToBackground } from '../shared/types'
+import type { MessageToBackground, DetectedApplication } from '../shared/types'
 import { getPlatformFromHostname } from './detector'
-import { detectLinkedIn } from './platforms/linkedin'
+import { detectLinkedIn, startLinkedInModalObserver } from './platforms/linkedin'
 import { detectGreenhouse } from './platforms/greenhouse'
 import { detectLever } from './platforms/lever'
 import { detectWorkday } from './platforms/workday'
@@ -29,6 +30,7 @@ import { autofillForm } from './autofill'
 declare global {
   interface Window {
     __pipeline_detected?: Set<string>
+    __pipeline_li_observer_started?: boolean
   }
 }
 
@@ -45,6 +47,31 @@ function markDetected(url: string): void {
 }
 
 // ---------------------------------------------------------------------------
+// Send detected application to background
+// ---------------------------------------------------------------------------
+
+function sendDetected(detected: DetectedApplication): void {
+  const url = window.location.href
+  if (hasDetectedUrl(url)) return
+  markDetected(url)
+
+  const platform = getPlatformFromHostname(window.location.hostname)
+  const message: MessageToBackground = {
+    type: 'APPLICATION_DETECTED',
+    payload: detected,
+  }
+  console.log('[Pipeline] ✅ Detection succeeded! Sending to background:', detected.company, '—', detected.jobTitle)
+  chrome.runtime.sendMessage(message, (response) => {
+    if (chrome.runtime.lastError) {
+      console.warn('[Pipeline] sendMessage error:', chrome.runtime.lastError.message)
+    } else {
+      console.log('[Pipeline] Background acknowledged:', response)
+    }
+  })
+  console.log('[Pipeline] Application confirmed:', detected.company, '—', detected.jobTitle, `(${platform})`)
+}
+
+// ---------------------------------------------------------------------------
 // Core detection logic
 // ---------------------------------------------------------------------------
 
@@ -58,7 +85,7 @@ function runDetection(): void {
   console.log('[Pipeline] runDetection() called on:', url, '| platform:', platform)
 
   // Run the appropriate platform detector, then generic as fallback
-  let detected =
+  const detected =
     detectLinkedIn() ??
     detectGreenhouse() ??
     detectLever() ??
@@ -68,27 +95,7 @@ function runDetection(): void {
     detectGeneric()
 
   if (detected) {
-    markDetected(url)
-    const message: MessageToBackground = {
-      type: 'APPLICATION_DETECTED',
-      payload: detected,
-    }
-    console.log('[Pipeline] ✅ Detection succeeded! Sending to background:', detected.company, '—', detected.jobTitle)
-    chrome.runtime.sendMessage(message, (response) => {
-      // Ignore errors — background may not be ready on very first install
-      if (chrome.runtime.lastError) {
-        console.warn('[Pipeline] sendMessage error:', chrome.runtime.lastError.message)
-      } else {
-        console.log('[Pipeline] Background acknowledged:', response)
-      }
-    })
-    console.log(
-      '[Pipeline] Application confirmed:',
-      detected.company,
-      '—',
-      detected.jobTitle,
-      `(${platform})`,
-    )
+    sendDetected(detected)
     return
   }
 
@@ -155,37 +162,19 @@ history.replaceState = function (...args) {
 }
 
 // ---------------------------------------------------------------------------
-// LinkedIn-specific polling fallback
+// LinkedIn: zero-debounce modal observer
 // ---------------------------------------------------------------------------
-// LinkedIn's Easy Apply modal confirmation renders asynchronously.
-// The MutationObserver triggers correctly, but the 750ms debounce means
-// we might miss the exact window when the text is in the DOM.
-// Poll aggressively for 60 seconds after page load as a safety net.
+// The general 750ms debounce is too slow to reliably catch LinkedIn's
+// confirmation modal (it appears and may be dismissed in under 750ms).
+// This dedicated observer fires IMMEDIATELY on every DOM insertion,
+// checks if the new node contains confirmation text, and fires if so.
 // ---------------------------------------------------------------------------
-if (window.location.hostname.includes('linkedin.com')) {
-  let pollCount = 0
-  const maxPolls = 120 // 60 seconds at 500ms intervals
-  const pollInterval = setInterval(() => {
-    pollCount++
-    if (pollCount >= maxPolls) {
-      clearInterval(pollInterval)
-      return
-    }
-    // Only poll if we haven't already detected on this URL
-    const url = window.location.href
-    if (hasDetectedUrl(url)) {
-      clearInterval(pollInterval)
-      return
-    }
-    // Quick check before running full detection
-    const bodyText = document.body?.textContent?.toLowerCase() || ''
-    if (bodyText.includes('your application was sent') ||
-        bodyText.includes('application was sent') ||
-        bodyText.includes('application submitted')) {
-      console.log('[Pipeline] Poll detected confirmation phrase, running detection...')
-      runDetection()
-    }
-  }, 500)
+
+if (window.location.hostname.includes('linkedin.com') && !window.__pipeline_li_observer_started) {
+  window.__pipeline_li_observer_started = true
+  startLinkedInModalObserver((result) => {
+    sendDetected(result)
+  })
 }
 
 // ---------------------------------------------------------------------------
