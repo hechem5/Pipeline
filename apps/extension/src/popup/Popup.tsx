@@ -703,7 +703,7 @@ export function Popup() {
             <button
               id="view-all-btn"
               style={s.viewAll}
-              onClick={() => openDashboard('/applications')}
+              onClick={() => openDashboard('/dashboard')}
             >
               View all →
             </button>
