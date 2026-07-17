@@ -22,11 +22,24 @@ const frontendUrls = frontendUrlStr.split(',').map((url) => url.trim());
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || frontendUrls.includes(origin)) {
+      // Allow requests with no origin (curl, server-to-server, health checks)
+      if (!origin) {
         callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
+        return;
       }
+      // Allow the configured frontend URLs
+      if (frontendUrls.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      // Allow Chrome extension origins — the JWT bearer token is the real
+      // security gate; CORS alone cannot protect an API that's also hit by
+      // the web app and server-side code.
+      if (origin.startsWith('chrome-extension://') || origin.startsWith('moz-extension://')) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
   })
