@@ -44,6 +44,40 @@ async function getAuth(): Promise<StoredAuth | null> {
   return (result['pipeline_auth'] as StoredAuth) ?? null
 }
 
+/**
+ * Gets auth, falling back to directly fetching the session from the web app.
+ * This handles the case where the auth-bridge postMessage dance never completed
+ * (e.g., the web app tab wasn't open when the extension was reloaded).
+ */
+async function getAuthWithFallback(): Promise<StoredAuth | null> {
+  let auth = await getAuth()
+  if (auth?.token) return auth
+
+  // Fallback: try to pull the JWT directly from the NextAuth session endpoint.
+  // This avoids the fragile postMessage bridge being the single point of failure.
+  const webAppUrls = ['http://localhost:3000', 'http://localhost:3002']
+  for (const baseUrl of webAppUrls) {
+    try {
+      const res = await fetch(`${baseUrl}/api/auth/session`, {
+        credentials: 'include',
+        signal: AbortSignal.timeout(3000),
+      })
+      if (!res.ok) continue
+      const data = await res.json() as { apiToken?: string }
+      if (data?.apiToken) {
+        auth = { token: data.apiToken }
+        await storageSet({ pipeline_auth: auth })
+        console.log('[Pipeline] Auth token recovered from web app session ✅')
+        return auth
+      }
+    } catch {
+      // Web app not reachable — skip
+    }
+  }
+
+  return null
+}
+
 async function apiFetch(path: string, body: unknown, token: string): Promise<Response> {
   const apiUrl = await getApiUrl()
   return fetch(`${apiUrl}${path}`, {
@@ -92,7 +126,7 @@ async function handleApplicationDetected(
   payload: DetectedApplication,
   source: ApplicationSource,
 ): Promise<void> {
-  const auth = await getAuth()
+  const auth = await getAuthWithFallback()
 
   console.log('[Pipeline] handleApplicationDetected called:', payload.company, payload.jobTitle)
   console.log('[Pipeline] Auth token present?', auth ? 'YES (token length=' + auth.token.length + ')' : 'NO — NOT LOGGED IN')

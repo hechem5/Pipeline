@@ -51,6 +51,7 @@
     "https://www.indeed.com/*",
     "https://indeed.com/*",
     "http://localhost:3000/*",
+    "http://localhost:3001/*",
     "http://localhost:3002/*"
   ]
 }
