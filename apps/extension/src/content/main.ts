@@ -60,15 +60,8 @@ function sendDetected(detected: DetectedApplication): void {
     type: 'APPLICATION_DETECTED',
     payload: detected,
   }
-  console.log('[Pipeline] ✅ Detection succeeded! Sending to background:', detected.company, '—', detected.jobTitle)
-  chrome.runtime.sendMessage(message, (response) => {
-    if (chrome.runtime.lastError) {
-      console.warn('[Pipeline] sendMessage error:', chrome.runtime.lastError.message)
-    } else {
-      console.log('[Pipeline] Background acknowledged:', response)
-    }
-  })
-  console.log('[Pipeline] Application confirmed:', detected.company, '—', detected.jobTitle, `(${platform})`)
+  chrome.runtime.sendMessage(message, () => { void chrome.runtime.lastError })
+  console.log('[Pipeline] ✅ Application confirmed:', detected.company, '—', detected.jobTitle, `(${platform})`)
 }
 
 // ---------------------------------------------------------------------------
@@ -81,8 +74,6 @@ function runDetection(): void {
 
   const hostname = window.location.hostname
   const platform = getPlatformFromHostname(hostname)
-
-  console.log('[Pipeline] runDetection() called on:', url, '| platform:', platform)
 
   // Run the appropriate platform detector, then generic as fallback
   const detected =
@@ -99,7 +90,6 @@ function runDetection(): void {
     return
   }
 
-  console.log('[Pipeline] No application detected on this page.')
   // Always run the job posting detector (for Feature 2)
   // (It has its own internal dedup via sessionStorage)
   runJobPostingDetector()
