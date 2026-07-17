@@ -54,6 +54,28 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
   }
 
   try {
+    // ── Idempotency: if a jobUrl is provided, return existing application ──
+    if (parsed.data.jobUrl) {
+      // Strip query params from the jobUrl for a looser match (post-apply URLs
+      // differ from the original job URL only in the pathname/params)
+      const jobUrlBase = parsed.data.jobUrl.split('?')[0].replace(/\/$/, '')
+
+      const existing = await prisma.application.findFirst({
+        where: {
+          userId: req.userId!,
+          // Match on the base URL (ignore query string) so both
+          // ?currentJobId=X and /post-apply/...?currentJobId=X dedupe correctly
+          jobUrl: { startsWith: jobUrlBase },
+        },
+        orderBy: { appliedAt: 'desc' },
+      });
+
+      if (existing) {
+        res.status(200).json(existing);
+        return;
+      }
+    }
+
     const application = await prisma.application.create({
       data: {
         userId: req.userId!,

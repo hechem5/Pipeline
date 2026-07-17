@@ -24,7 +24,7 @@ import { runJobPostingDetector } from './job-posting-detector'
 import { autofillForm } from './autofill'
 
 // ---------------------------------------------------------------------------
-// SPA guard — avoid firing multiple times for the same URL
+// SPA guard — avoid firing multiple times for the same URL or LinkedIn job ID
 // ---------------------------------------------------------------------------
 
 declare global {
@@ -46,12 +46,50 @@ function markDetected(url: string): void {
   window.__pipeline_detected!.add(url)
 }
 
+// LinkedIn-specific dedup: keyed by jobId, stored in sessionStorage so it
+// survives the SPA navigation from ?currentJobId=X → /post-apply/...?currentJobId=X
+const LI_DETECTED_KEY = 'pipeline_li_detected_jobs'
+
+function getLinkedInJobId(): string | null {
+  const p = new URLSearchParams(window.location.search)
+  return p.get('currentJobId') ?? p.get('postApplyJobId') ?? null
+}
+
+function hasDetectedLinkedInJob(jobId: string): boolean {
+  try {
+    const stored = sessionStorage.getItem(LI_DETECTED_KEY)
+    return (stored ? (JSON.parse(stored) as string[]) : []).includes(jobId)
+  } catch { return false }
+}
+
+function markLinkedInJobDetected(jobId: string): void {
+  try {
+    const stored = sessionStorage.getItem(LI_DETECTED_KEY)
+    const ids: string[] = stored ? (JSON.parse(stored) as string[]) : []
+    if (!ids.includes(jobId)) {
+      ids.push(jobId)
+      sessionStorage.setItem(LI_DETECTED_KEY, JSON.stringify(ids))
+    }
+  } catch { /* ignore */ }
+}
+
 // ---------------------------------------------------------------------------
 // Send detected application to background
 // ---------------------------------------------------------------------------
 
 function sendDetected(detected: DetectedApplication): void {
   const url = window.location.href
+
+  // LinkedIn: dedup by job ID (survives SPA URL changes between currentJobId=X and post-apply URL)
+  if (window.location.hostname.includes('linkedin.com')) {
+    const jobId = getLinkedInJobId()
+    if (jobId) {
+      if (hasDetectedLinkedInJob(jobId)) return
+      markLinkedInJobDetected(jobId)
+    }
+  }
+
+  // General URL dedup (catches same-URL repeated fires)
   if (hasDetectedUrl(url)) return
   markDetected(url)
 
