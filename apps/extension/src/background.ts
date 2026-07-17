@@ -94,6 +94,9 @@ async function handleApplicationDetected(
 ): Promise<void> {
   const auth = await getAuth()
 
+  console.log('[Pipeline] handleApplicationDetected called:', payload.company, payload.jobTitle)
+  console.log('[Pipeline] Auth token present?', auth ? 'YES (token length=' + auth.token.length + ')' : 'NO — NOT LOGGED IN')
+
   if (!auth) {
     // User not logged in — queue locally and alert with badge
     const result = await storageGet<DetectedApplication[]>('pipeline_pending_offline')
@@ -106,10 +109,17 @@ async function handleApplicationDetected(
   }
 
   try {
+    const apiUrl = await getApiUrl()
+    console.log('[Pipeline] Posting to API:', apiUrl + '/applications')
     const res = await apiFetch('/applications', { ...payload, source }, auth.token)
-    if (!res.ok) throw new Error(`API error ${res.status}`)
+    console.log('[Pipeline] API response status:', res.status)
+    if (!res.ok) {
+      const body = await res.text()
+      console.error('[Pipeline] API error body:', body)
+      throw new Error(`API error ${res.status}: ${body}`)
+    }
     await incrementTodayBadge()
-    console.log('[Pipeline] Application logged:', payload.company, payload.jobTitle)
+    console.log('[Pipeline] ✅ Application logged:', payload.company, payload.jobTitle)
   } catch (err) {
     // Network failure — store for retry on next SW activation
     const result = await storageGet<DetectedApplication[]>('pipeline_retry_queue')
@@ -228,8 +238,10 @@ chrome.runtime.onMessage.addListener(
 
     if (type === 'SYNC_AUTH') {
       const { token } = payload as { token: string | null }
+      console.log('[Pipeline] SYNC_AUTH received. Token present?', token ? 'YES (length=' + token.length + ')' : 'NO (null/logout)')
       if (token) {
         storageSet({ pipeline_auth: { token } }).then(async () => {
+          console.log('[Pipeline] Auth token saved to storage ✅')
           // Now that we have auth, retry both queues
           await retryPendingOfflineQueue()
           await retryOfflineQueue()

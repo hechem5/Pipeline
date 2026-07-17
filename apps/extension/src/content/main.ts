@@ -55,6 +55,8 @@ function runDetection(): void {
   const hostname = window.location.hostname
   const platform = getPlatformFromHostname(hostname)
 
+  console.log('[Pipeline] runDetection() called on:', url, '| platform:', platform)
+
   // Run the appropriate platform detector, then generic as fallback
   let detected =
     detectLinkedIn() ??
@@ -71,9 +73,14 @@ function runDetection(): void {
       type: 'APPLICATION_DETECTED',
       payload: detected,
     }
-    chrome.runtime.sendMessage(message, () => {
+    console.log('[Pipeline] ✅ Detection succeeded! Sending to background:', detected.company, '—', detected.jobTitle)
+    chrome.runtime.sendMessage(message, (response) => {
       // Ignore errors — background may not be ready on very first install
-      void chrome.runtime.lastError
+      if (chrome.runtime.lastError) {
+        console.warn('[Pipeline] sendMessage error:', chrome.runtime.lastError.message)
+      } else {
+        console.log('[Pipeline] Background acknowledged:', response)
+      }
     })
     console.log(
       '[Pipeline] Application confirmed:',
@@ -85,6 +92,7 @@ function runDetection(): void {
     return
   }
 
+  console.log('[Pipeline] No application detected on this page.')
   // Always run the job posting detector (for Feature 2)
   // (It has its own internal dedup via sessionStorage)
   runJobPostingDetector()
